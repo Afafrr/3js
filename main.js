@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import arrow from './arrow';
 import sphere from './sphere';
+import cube from './cube';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x111111);
@@ -15,7 +16,8 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 document.body.appendChild(renderer.domElement);
 
 // const obj = arrow;
-const obj = sphere;
+const obj = cube;
+// const obj = sphere;
 
 scene.add(obj);
 
