@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import arrow from './arrow';
-import sphere from './sphere';
-import cube from './cube';
+import arrow from './models/arrow';
+import sphere from './models/sphere';
+import cube from './models/cube';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x111111);
