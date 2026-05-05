@@ -24,8 +24,7 @@ document.body.appendChild(renderer.domElement);
 // const obj = arrow;
 // const obj = cube;
 const obj = sphereGeo;
-obj.rotation.x = 0.3;
-obj.rotation.y = -1.6;
+obj.rotation.y = 1.4;
 
 scene.add(obj);
 

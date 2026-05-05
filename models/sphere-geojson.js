@@ -5,8 +5,8 @@ const TEXTURE_WIDTH = 2048 * 2;
 const TEXTURE_HEIGHT = 1024 * 2;
 const OCEAN_COLOR = 'rgba(15, 23, 42, 0.18)';
 const LAND_COLOR = 'rgb(255, 255, 255)';
-const SPHERE_WIDTH_SEGMENTS = 180;
-const SPHERE_HEIGHT_SEGMENTS = 180;
+const SPHERE_WIDTH_SEGMENTS = 80;
+const SPHERE_HEIGHT_SEGMENTS = 80;
 const INNER_SPHERE_SCALE = 0.98;
 const INNER_SPHERE_COLOR = '#0f172a';
 const INNER_SPHERE_OPACITY = 0.7;
@@ -15,7 +15,7 @@ const BORDER_COLOR = 'rgba(111, 116, 126, 0.55)';
 const BORDER_WIDTH = 1;
 const BORDER_DASH = [1, 4];
 
-const geometry = new THREE.SphereGeometry(1, SPHERE_WIDTH_SEGMENTS, SPHERE_HEIGHT_SEGMENTS);
+const geometry = new THREE.IcosahedronGeometry(1, SPHERE_WIDTH_SEGMENTS, SPHERE_HEIGHT_SEGMENTS);
 const material = new THREE.MeshBasicMaterial({
   color: 0xffffff,
   wireframe: true,
