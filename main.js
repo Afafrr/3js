@@ -1,23 +1,29 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import arrow from './models/arrow';
-import sphere from './models/sphere';
 import cube from './models/cube';
+import sphereGeo from './models/sphere-geojson';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x111111);
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+function getViewportSize() {
+  return {
+    width: window.innerWidth,
+    height: Math.max(window.innerHeight, 1),
+  };
+}
+
+const { width: initialWidth, height: initialHeight } = getViewportSize();
+const camera = new THREE.PerspectiveCamera(75, initialWidth / initialHeight, 0.1, 1000);
 camera.position.set(0, 0, 2);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true }); //antialias makes the edges sharper
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 document.body.appendChild(renderer.domElement);
 
 // const obj = arrow;
-const obj = cube;
-// const obj = sphere;
+// const obj = cube;
+const obj = sphereGeo;
 
 scene.add(obj);
 
@@ -42,12 +48,15 @@ lowerFillLight.position.set(0, -2.2, 1);
 scene.add(lowerFillLight);
 
 function onResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  const { width, height } = getViewportSize();
+
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 }
 
+onResize();
 window.addEventListener('resize', onResize);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
