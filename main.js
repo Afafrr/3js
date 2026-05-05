@@ -16,7 +16,7 @@ function getViewportSize() {
 
 const { width: initialWidth, height: initialHeight } = getViewportSize();
 const camera = new THREE.PerspectiveCamera(75, initialWidth / initialHeight, 0.1, 1000);
-camera.position.set(0, 0, 2);
+camera.position.set(0, 0.55, 2.5);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true }); //antialias makes the edges sharper
 document.body.appendChild(renderer.domElement);
@@ -24,6 +24,8 @@ document.body.appendChild(renderer.domElement);
 // const obj = arrow;
 // const obj = cube;
 const obj = sphereGeo;
+obj.rotation.x = 0.3;
+obj.rotation.y = -1.6;
 
 scene.add(obj);
 

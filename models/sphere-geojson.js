@@ -1,21 +1,41 @@
 import * as THREE from 'three';
 
 const GEOJSON_URL = new URL('../media/world.geojson', import.meta.url);
-const TEXTURE_WIDTH = 2048;
-const TEXTURE_HEIGHT = 1024;
-const OCEAN_COLOR = '#0f172a';
-const LAND_COLOR = '#e5e7eb';
+const TEXTURE_WIDTH = 2048 * 2;
+const TEXTURE_HEIGHT = 1024 * 2;
+const OCEAN_COLOR = 'rgba(15, 23, 42, 0.18)';
+const LAND_COLOR = 'rgb(255, 255, 255)';
+const SPHERE_WIDTH_SEGMENTS = 180;
+const SPHERE_HEIGHT_SEGMENTS = 180;
+const INNER_SPHERE_SCALE = 0.98;
+const INNER_SPHERE_COLOR = '#0f172a';
+const INNER_SPHERE_OPACITY = 0.7;
 
-const geometry = new THREE.SphereGeometry(1, 64, 64);
+const BORDER_COLOR = 'rgba(111, 116, 126, 0.55)';
+const BORDER_WIDTH = 1;
+const BORDER_DASH = [1, 4];
+
+const geometry = new THREE.SphereGeometry(1, SPHERE_WIDTH_SEGMENTS, SPHERE_HEIGHT_SEGMENTS);
 const material = new THREE.MeshBasicMaterial({
   color: 0xffffff,
-  roughness: 1,
-  metalness: 0,
+  wireframe: true,
 });
 
+const globe = new THREE.Group();
 const sphere = new THREE.Mesh(geometry, material);
+const innerSphere = new THREE.Mesh(
+  geometry.clone().scale(INNER_SPHERE_SCALE, INNER_SPHERE_SCALE, INNER_SPHERE_SCALE),
+  new THREE.MeshBasicMaterial({
+    color: INNER_SPHERE_COLOR,
+    transparent: true,
+    opacity: INNER_SPHERE_OPACITY,
+  }),
+);
 const texture = createCanvasTexture();
 const context = texture.image.getContext('2d');
+
+globe.add(innerSphere);
+globe.add(sphere);
 
 let geoJsonData;
 
@@ -66,14 +86,24 @@ function fillPolygon(drawContext, polygon) {
   drawContext.fill();
 }
 
+function strokePolygon(drawContext, polygon) {
+  tracePolygon(drawContext, polygon);
+  drawContext.strokeStyle = BORDER_COLOR;
+  drawContext.lineWidth = BORDER_WIDTH;
+  drawContext.setLineDash(BORDER_DASH);
+  drawContext.stroke();
+}
+
 function drawGeometry(drawContext, geometryData) {
   if (geometryData.type === 'Polygon') {
     fillPolygon(drawContext, geometryData.coordinates);
+    strokePolygon(drawContext, geometryData.coordinates);
   }
 
   if (geometryData.type === 'MultiPolygon') {
     for (const polygon of geometryData.coordinates) {
       fillPolygon(drawContext, polygon);
+      strokePolygon(drawContext, polygon);
     }
   }
 }
@@ -109,4 +139,4 @@ loadGeoJsonTexture().catch((error) => {
   console.warn('Failed to load GeoJSON texture', error);
 });
 
-export default sphere;
+export default globe;
