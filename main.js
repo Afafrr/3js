@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import arrow from './arrow';
+import sphere from './sphere';
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x111111);
 
@@ -12,12 +14,12 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 document.body.appendChild(renderer.domElement);
 
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshNormalMaterial({ wireframe: true });
-const cube = new THREE.Mesh(geometry, material);
-// scene.add(cube);
-scene.add(arrow);
+// const obj = arrow;
+const obj = sphere;
 
+scene.add(obj);
+
+//lights
 const ambient = new THREE.AmbientLight(0xffffff, 0.7);
 scene.add(ambient);
 
@@ -41,6 +43,7 @@ function onResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 }
 
 window.addEventListener('resize', onResize);
@@ -54,7 +57,7 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
 
-  arrow.update(delta);
+  obj.update?.(delta);
   controls.update();
   renderer.render(scene, camera);
 }
