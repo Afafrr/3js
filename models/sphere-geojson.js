@@ -140,16 +140,18 @@ loadGeoJsonTexture().catch((error) => {
 });
 
 export function latLonToDirection(lat, lon) {
+  // Match SphereGeometry UV mapping (u: longitude, v: latitude) so
+  // data-lat/data-lon and texture projection stay in sync.
   const latRad = (lat * Math.PI) / 180;
-  const lonRad = (lon * Math.PI) / 180;
+  const lonRad = ((lon + 180) * Math.PI) / 180;
 
-  const x = Math.cos(latRad) * Math.sin(lonRad);
+  const x = Math.cos(latRad) * Math.cos(lonRad);
   const y = Math.sin(latRad);
-  const z = Math.cos(latRad) * Math.cos(lonRad);
+  const z = -Math.cos(latRad) * Math.sin(lonRad);
   return new THREE.Vector3(x, y, z);
 }
 
-const marker = new THREE.Mesh(new THREE.SphereGeometry(0.02), new THREE.MeshBasicMaterial({ color: 'red' }));
+const marker = new THREE.Mesh(new THREE.SphereGeometry(0.01), new THREE.MeshBasicMaterial({ color: 'red' }));
 
 export function setMarkerPosition(lat, lon, radius = 1.02) {
   marker.position.copy(latLonToDirection(lat, lon).multiplyScalar(radius));

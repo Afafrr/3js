@@ -95,6 +95,6 @@ animate();
 
 export function focusCity(lat, lon, radius = DEFAULT_MARKER_RADIUS) {
   const direction = latLonToDirection(lat, lon);
-  setMarkerPosition(lat, lon, radius);
+  setMarkerPosition(lat - 1, lon + 3, radius);
   return direction;
 }
