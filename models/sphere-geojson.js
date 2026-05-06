@@ -139,4 +139,24 @@ loadGeoJsonTexture().catch((error) => {
   console.warn('Failed to load GeoJSON texture', error);
 });
 
+export function latLonToDirection(lat, lon) {
+  const latRad = (lat * Math.PI) / 180;
+  const lonRad = (lon * Math.PI) / 180;
+
+  const x = Math.cos(latRad) * Math.sin(lonRad);
+  const y = Math.sin(latRad);
+  const z = Math.cos(latRad) * Math.cos(lonRad);
+  return new THREE.Vector3(x, y, z);
+}
+
+const marker = new THREE.Mesh(new THREE.SphereGeometry(0.02), new THREE.MeshBasicMaterial({ color: 'red' }));
+
+export function setMarkerPosition(lat, lon, radius = 1.02) {
+  marker.position.copy(latLonToDirection(lat, lon).multiplyScalar(radius));
+
+  if (!marker.parent) {
+    globe.add(marker);
+  }
+}
+
 export default globe;

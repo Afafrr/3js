@@ -2,24 +2,35 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import arrow from './models/arrow';
 import cube from './models/cube';
-import sphereGeo from './models/sphere-geojson';
+import sphereGeo, { latLonToDirection, setMarkerPosition } from './models/sphere-geojson';
+
+const DEFAULT_MARKER_RADIUS = 1.02;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x111111);
 
-function getViewportSize() {
+const viewer = document.getElementById('viewer');
+
+function getContainerSize() {
+  if (!viewer) {
+    return {
+      width: window.innerWidth,
+      height: Math.max(window.innerHeight, 1),
+    };
+  }
+
   return {
-    width: window.innerWidth,
-    height: Math.max(window.innerHeight, 1),
+    width: Math.max(viewer.clientWidth, 1),
+    height: Math.max(viewer.clientHeight, 1),
   };
 }
 
-const { width: initialWidth, height: initialHeight } = getViewportSize();
+const { width: initialWidth, height: initialHeight } = getContainerSize();
 const camera = new THREE.PerspectiveCamera(75, initialWidth / initialHeight, 0.1, 1000);
 camera.position.set(0, 0.55, 2.5);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true }); //antialias makes the edges sharper
-document.body.appendChild(renderer.domElement);
+viewer.appendChild(renderer.domElement);
 
 // const obj = arrow;
 // const obj = cube;
@@ -49,7 +60,7 @@ lowerFillLight.position.set(0, -2.2, 1);
 scene.add(lowerFillLight);
 
 function onResize() {
-  const { width, height } = getViewportSize();
+  const { width, height } = getContainerSize();
 
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
@@ -59,6 +70,10 @@ function onResize() {
 
 onResize();
 window.addEventListener('resize', onResize);
+if (viewer && 'ResizeObserver' in window) {
+  const resizeObserver = new ResizeObserver(onResize);
+  resizeObserver.observe(viewer);
+}
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, -0.15, 0);
@@ -75,3 +90,9 @@ function animate() {
 }
 
 animate();
+
+export function focusCity(lat, lon, radius = DEFAULT_MARKER_RADIUS) {
+  const direction = latLonToDirection(lat, lon);
+  setMarkerPosition(lat, lon, radius);
+  return direction;
+}
