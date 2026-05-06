@@ -6,6 +6,12 @@ import cube from './models/cube';
 import sphereGeo, { latLonToDirection, setMarkerPosition } from './models/sphere-geojson';
 
 const DEFAULT_MARKER_RADIUS = 1.02;
+const FOCUS_ANIMATION_DURATION_MS = 1200;
+const FOCUS_EASING = TWEEN.Easing.Cubic.InOut;
+
+const WORLD_UP = new THREE.Vector3(0, 1, 0);
+const FALLBACK_UP = new THREE.Vector3(0, 0, 1);
+const PARALLEL_THRESHOLD = 0.999;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x111111);
@@ -84,6 +90,51 @@ timer.connect(document);
 const tweenGroup = new TWEEN.Group();
 let focusTween = null;
 
+function getSafeUpReference(forward) {
+  return Math.abs(forward.dot(WORLD_UP)) > PARALLEL_THRESHOLD ? FALLBACK_UP : WORLD_UP;
+}
+
+function makeOrientationBasis(forward) {
+  const upReference = getSafeUpReference(forward);
+  const right = new THREE.Vector3().crossVectors(upReference, forward).normalize();
+  const up = new THREE.Vector3().crossVectors(forward, right).normalize();
+
+  return new THREE.Matrix4().makeBasis(right, up, forward);
+}
+
+function getFocusTargetQuaternion(fromForward, toForward) {
+  // Build two orientation frames and compute the delta quaternion between them.
+  const fromBasis = makeOrientationBasis(fromForward);
+  const toBasis = makeOrientationBasis(toForward);
+
+  const fromQuaternion = new THREE.Quaternion().setFromRotationMatrix(fromBasis);
+  const toQuaternion = new THREE.Quaternion().setFromRotationMatrix(toBasis);
+  return toQuaternion.multiply(fromQuaternion.invert()).normalize();
+}
+
+function startFocusTween(targetQuaternion) {
+  focusTween?.stop();
+
+  const startQuaternion = obj.quaternion.clone().normalize();
+  const tweenState = { progress: 0 };
+
+  // Slerp keeps angular velocity smooth and avoids interpolation artifacts.
+  focusTween = new TWEEN.Tween(tweenState, tweenGroup)
+    .to({ progress: 1 }, FOCUS_ANIMATION_DURATION_MS)
+    .easing(FOCUS_EASING)
+    .onUpdate(() => {
+      obj.quaternion.slerpQuaternions(startQuaternion, targetQuaternion, tweenState.progress);
+    })
+    .onComplete(() => {
+      obj.quaternion.copy(targetQuaternion);
+      focusTween = null;
+    })
+    .onStop(() => {
+      focusTween = null;
+    })
+    .start(TWEEN.now());
+}
+
 function animate() {
   requestAnimationFrame(animate);
   timer.update();
@@ -98,54 +149,18 @@ function animate() {
 animate();
 
 export function focusCity(lat, lon, radius = DEFAULT_MARKER_RADIUS) {
-  const direction = latLonToDirection(lat, lon);
+  const direction = latLonToDirection(lat - 10, lon - 5);
   setMarkerPosition(lat, lon, radius);
 
   const fromForward = direction.clone().normalize();
   const toForward = new THREE.Vector3().subVectors(camera.position, obj.position).normalize();
 
-  if (fromForward.lengthSq() > 0 && toForward.lengthSq() > 0) {
-    const worldUp = new THREE.Vector3(0, 1, 0);
-    const fallbackUp = new THREE.Vector3(0, 0, 1);
-
-    const fromUpRef = Math.abs(fromForward.dot(worldUp)) > 0.999 ? fallbackUp : worldUp;
-    const toUpRef = Math.abs(toForward.dot(worldUp)) > 0.999 ? fallbackUp : worldUp;
-
-    const fromRight = new THREE.Vector3().crossVectors(fromUpRef, fromForward).normalize();
-    const fromUp = new THREE.Vector3().crossVectors(fromForward, fromRight).normalize();
-
-    const toRight = new THREE.Vector3().crossVectors(toUpRef, toForward).normalize();
-    const toUp = new THREE.Vector3().crossVectors(toForward, toRight).normalize();
-
-    const fromBasis = new THREE.Matrix4().makeBasis(fromRight, fromUp, fromForward);
-    const toBasis = new THREE.Matrix4().makeBasis(toRight, toUp, toForward);
-
-    const fromQuaternion = new THREE.Quaternion().setFromRotationMatrix(fromBasis);
-    const toQuaternion = new THREE.Quaternion().setFromRotationMatrix(toBasis);
-
-    const constrainedRotation = toQuaternion.multiply(fromQuaternion.invert());
-    const targetQuaternion = constrainedRotation.clone().normalize();
-
-    focusTween?.stop();
-
-    const startQuaternion = obj.quaternion.clone().normalize();
-    const tweenState = { progress: 0 };
-
-    focusTween = new TWEEN.Tween(tweenState, tweenGroup)
-      .to({ progress: 1 }, 1200)
-      .easing(TWEEN.Easing.Cubic.InOut)
-      .onUpdate(() => {
-        obj.quaternion.slerpQuaternions(startQuaternion, targetQuaternion, tweenState.progress);
-      })
-      .onComplete(() => {
-        obj.quaternion.copy(targetQuaternion);
-        focusTween = null;
-      })
-      .onStop(() => {
-        focusTween = null;
-      })
-      .start(TWEEN.now());
+  if (fromForward.lengthSq() <= 0 || toForward.lengthSq() <= 0) {
+    return direction;
   }
+
+  const targetQuaternion = getFocusTargetQuaternion(fromForward, toForward);
+  startFocusTween(targetQuaternion);
 
   return direction;
 }
