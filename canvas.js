@@ -78,11 +78,13 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, -0.15, 0);
 controls.update();
-const clock = new THREE.Clock();
+const timer = new THREE.Timer();
+timer.connect(document);
 
 function animate() {
   requestAnimationFrame(animate);
-  const delta = clock.getDelta();
+  timer.update();
+  const delta = timer.getDelta();
 
   obj.update?.(delta);
   controls.update();
