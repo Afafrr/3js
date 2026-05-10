@@ -4,8 +4,8 @@ Created with AI help
 
 ## Globe
 
-<video controls src="media/videos/readme1.mp4" width=1000></video>
+<img src="media/videos/readme1.gif" alt="Globe demo" width="1000" />
 
 ## Logo
 
-<video controls src="media/videos/readme2.mp4" width=800></video>
+<img src="media/videos/readme2.gif" alt="Logo demo" width="700" />
